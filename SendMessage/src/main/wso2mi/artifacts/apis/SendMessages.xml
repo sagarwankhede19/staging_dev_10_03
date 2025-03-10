@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/" name="SendMessages"
+    xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/blast/message" faultSequence="onErrorSequence">
+        <inSequence>
+            <log level="full">
+                <property name="INFO" value="Starting integration processing..." />
+            </log>
+            <property name="infobipUrl" expression="get-property('infobipUrl')" />
+            <property name="infobipKey" expression="get-property('infobipKey')" />
+            <property name="from" expression="get-property('fromNumber')" />
+            <log level="full">
+                <property name="infobipUrl-----" expression="get-property('infobipUrl')" />
+                <property name="infobipKey-----" expression="get-property('infobipKey')" />
+                <property name="from-----" expression="get-property('from')" />
+            </log>
+            <enrich>
+                <source type="body" />
+                <target type="property" property="requestPayload" />
+            </enrich>
+            <property name="to" expression="$ctx:requestPayload/send_to" scope="default" />
+            <property name="templateName" expression="$ctx:requestPayload/templateName" scope="default" />
+            <property name="msg" expression="$ctx:requestPayload/msg" scope="default" />
+            <property name="messageId" expression="$ctx:requestPayload/msg_id" scope="default" />
+            <property name="messageId" expression="$ctx:requestPayload/msg_id" scope="transport" type="STRING" />
+            <property name="notifyUrl" value="https://mytestdomain.loca.lt/callback" />
+            <property name="integrationNo" scope="transport" type="STRING" value="I1125" />
+            <property name="type" scope="transport" type="STRING" value="Incoming request from TM to Kraft" />
+
+            <payloadFactory media-type="json" template-type="default">
+                <format> $1</format>
+                <args>
+                    <arg expression="get-property('requestPayload')" />
+                </args>
+            </payloadFactory>
+            <call >
+                <endpoint key="LogAPI" />
+            </call>
+            <sequence key="processSeq" />
+            <respond />
+        </inSequence>
+    </resource>
+    <resource methods="POST" uri-template="/callback">
+        <inSequence>
+            <sequence key="processCallbackSeq" />
+        </inSequence>
+    </resource>
+    <resource methods="POST" uri-template="/send">
+        <inSequence>
+            <enrich>
+                <source type="body" />
+                <target type="property" property="requestPayload" />
+            </enrich>
+            <property name="to" expression="$ctx:requestPayload/send_to" scope="default" />
+            <property name="messageId" expression="$ctx:requestPayload/msg_id" scope="default" />
+
+            <payloadFactory description="Create response payload" media-type="json">
+                <format>
+                    {
+                        "to": "$1",
+                        "messageCount": 1,
+                        "messageId": "$2",
+                        "status": "PENDING",
+                        "description": "Message sent to next instance"
+                    }
+                </format>
+                    <args>
+                        <arg evaluator="xml" expression="get-property('to')" />
+                        <arg evaluator="xml" expression="get-property('messageId')" />
+                    </args>
+            </payloadFactory>
+
+            <respond />
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

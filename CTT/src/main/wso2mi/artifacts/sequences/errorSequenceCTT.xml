@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="errorSequenceCTT" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <property name="errorStatus" expression="json-eval($.message)"/>
+    <property name="error" scope="transport" expression="json-eval($.message)"/>
+    <property name="description" expression="json-eval($.description)"/>
+    <property name="errorMsgId" scope="transport" expression="get-property('requestId')"/>
+    <property name="errorDetails" scope="transport" expression="get-property('description')"/>
+    <property name="errorStatusCode" scope="transport" expression="get-property('statusCode')"/>
+    <payloadFactory description="Create error response payload" media-type="json">
+        <format>
+            {
+            "requestId": "$1",
+            "status": "$2",
+            "description": "$3"
+            }
+        </format>
+        <args>
+            <arg evaluator="xml" expression="get-property('requestId')"/>
+            <arg evaluator="xml" expression="get-property('errorStatus')"/>
+            <arg evaluator="xml" expression="get-property('description')"/>
+        </args>
+    </payloadFactory>
+    <property name="tmResponse" expression="json-eval($)"/>
+</sequence>

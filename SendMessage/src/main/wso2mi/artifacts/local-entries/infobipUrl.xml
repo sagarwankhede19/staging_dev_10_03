@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="infobipUrl" xmlns="http://ws.apache.org/ns/synapse">
+    <![CDATA[https://8k5d33.api.infobip.com/whatsapp/1/message/template]]>
+</localEntry>

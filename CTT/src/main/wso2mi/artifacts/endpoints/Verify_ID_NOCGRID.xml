@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoint name="Verify_ID_NOCGRID" xmlns="http://ws.apache.org/ns/synapse">
+    <http method="post" uri-template="https://api.apigate.tm.com.my/t/tm.com.my/sit/chatbotwso2api/1.0.0/sba/sync/chatbot/wso2/VerifyIDNOCGRID">
+        <suspendOnFailure>
+            <initialDuration>-1</initialDuration>
+            <progressionFactor>1</progressionFactor>
+        </suspendOnFailure>
+        <markForSuspension>
+            <retriesBeforeSuspension>0</retriesBeforeSuspension>
+        </markForSuspension>
+    </http>
+</endpoint>

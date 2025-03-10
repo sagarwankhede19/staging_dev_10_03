@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="processNRIC" trace="disable" onError="onErrorSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <sequence key="getTmConfigs"/>
+    <payloadFactory media-type="json">
+        <format>$1</format>
+        <args>
+            <arg evaluator="xml" expression="get-property('tmRequestPayload')"/>
+        </args>
+    </payloadFactory>
+    <header name="Authorization" action="set" scope="transport" expression="get-property('Token')"/>
+    <call>
+        <endpoint>
+            <address uri="${tmUrl}"/>
+        </endpoint>
+    </call>
+    <property name="statusCode" expression="get-property('axis2', 'HTTP_SC')"/>
+    <switch source="get-property('statusCode')">
+        <case regex="200">
+            <payloadFactory description="Create response payload" media-type="json">
+                <format>
+                    {
+                    "responseHeader": {
+                    "rqUuid": "$1",
+                    "requestId": "$2",
+                    "status": "$3",
+                    "statusCode": "$4",
+                    "errorCode": "$5",
+                    "errorMessage": "$6",
+                    "errorDetail": "$7",
+                    "errorPayload": "$8"
+                    },
+                    "idVerificationStatus": {
+                    "address": "$9",
+                    "unifiId": "$10",
+                    "cttNo": "$11",
+                    "validityFlag": "$12"
+                    }
+                    }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.rqUuid)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.requestId)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.status)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.statusCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorMessage)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorDetail)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorPayload)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.address)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.unifiId)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.cttNo)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.validityFlag)"/>
+                </args>
+            </payloadFactory>
+            <property name="tmResponse" expression="json-eval($)"/>
+        </case>
+        <!-- Add case for 404 -->
+        <case regex="404">
+            <payloadFactory description="Create 404 response payload" media-type="json">
+                <format>
+                    {
+                    "responseHeader": {
+                    "rqUuid": "$1",
+                    "requestId": "$2",
+                    "status": "Details not found",
+                    "statusCode": "$4",
+                    "errorCode": "$5",
+                    "errorMessage": "$6",
+                    "errorDetail": "$7",
+                    "errorPayload": "$8"
+                    },
+                    "idVerificationStatus": {
+                    "address": "$9",
+                    "unifiId": "$10",
+                    "cttNo": "$11",
+                    "validityFlag": "$12"
+                    }
+                    }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.rqUuid)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.requestId)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.status)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.statusCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorMessage)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorDetail)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorPayload)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.address)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.unifiId)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.cttNo)"/>
+                    <arg evaluator="json" expression="json-eval($.idVerificationStatus.validityFlag)"/>
+                </args>
+            </payloadFactory>
+            <property name="tmResponse" expression="json-eval($)"/>
+            <property name="statusCode" value="200"/>
+        </case>
+        <default>
+            <sequence key="errorSequenceNRIC"/>
+        </default>
+    </switch>
+    <property name="integrationNo" scope="transport" type="STRING" value="I1125"/>
+    <property name="type" scope="transport" type="STRING" value="Response body NRIC"/>
+    <property name="requestId" scope="transport" type="STRING" expression="get-property('requestId')"/>
+    <call>
+        <endpoint key="LogAPI"/>
+    </call>
+    <property name="SC_ACCEPTED" value="false" scope="axis2"/>
+    <property name="HTTP_SC" expression="get-property('statusCode')" scope="axis2"/>
+    <payloadFactory media-type="json">
+        <format>$1</format>
+        <args>
+            <arg expression="get-property('tmResponse')"></arg>
+        </args>
+    </payloadFactory>
+    <respond/>
+</sequence>

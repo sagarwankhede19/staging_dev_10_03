@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/chatbotcreatecttapi" name="ChatbotCreateCTTAPI" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/createCTT">
+        <inSequence>
+            <enrich>
+                <source type="body"/>
+                <target type="property" property="tmCTTRequestPayload"/>
+            </enrich>
+            <property name="requestId" expression="json-eval($.requestHeader.requestId)" scope="default"/>
+            <property name="eventName" expression="json-eval($.requestHeader.eventName)" scope="default"/>
+            <property name="mobileNum" expression="json-eval($.mobileNum)" scope="default"/>
+            <property name="createCtt" expression="json-eval($.createCtt)" scope="default"/>
+            <property name="reason" expression="json-eval($.reason)" scope="default"/>
+            <property name="comment" expression="json-eval($.comment)" scope="default"/>
+            <property name="responseDt" expression="json-eval($.responseDt)" scope="default"/>
+            <property name="integrationNo" scope="transport" type="STRING" value="I1125"/>
+            <property name="type" scope="transport" type="STRING" value="Incoming Request CTT"/>
+            <property name="requestId" scope="transport" type="STRING" expression="get-property('requestId')"/>
+            <call blocking="false">
+                <endpoint key="LogAPI"/>
+            </call>
+            <sequence key="processCTT"/>
+            <respond/>
+        </inSequence>
+    </resource>
+</api>

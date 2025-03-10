@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="processCTT" trace="disable" onError="onErrorSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <sequence key="getTmConfigs"/>
+    <payloadFactory media-type="json">
+        <format>$1</format>
+        <args>
+            <arg evaluator="xml" expression="get-property('tmCTTRequestPayload')"/>
+        </args>
+    </payloadFactory>
+    <header name="Authorization" action="set" scope="transport" expression="get-property('Token')"/>
+    <call>
+        <endpoint>
+            <address uri="${tmCTTUrl}"/>
+        </endpoint>
+    </call>
+    <property name="tmResponse" expression="json-eval($)"/>
+    <property name="statusCode" expression="get-property('axis2', 'HTTP_SC')"/>
+    <property name="createCttValue" expression="json-eval($.proactiveCttInfo.validityFlag)"/>
+    <switch source="get-property('statusCode')">
+        <case regex="200">
+            <payloadFactory description="Success Response with CTT No" media-type="json">
+                <format>
+                    {
+                    "responseHeader": {
+                    "rqUuid": "$1",
+                    "requestId": "$2",
+                    "status": "$3",
+                    "statusCode": $4,
+                    "errorCode": "$5",
+                    "errorMessage": "$6",
+                    "errorDetail": "$7",
+                    "errorPayload": "$8"
+                    },
+                    "proactiveCttInfo": {
+                    "cttNo": "$9",
+                    "validityFlag": "$10"
+                    }
+                    }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.rqUuid)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.requestId)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.status)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.statusCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorCode)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorMessage)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorDetail)"/>
+                    <arg evaluator="json" expression="json-eval($.responseHeader.errorPayload)"/>
+                    <arg evaluator="json" expression="json-eval($.proactiveCttInfo.cttNo)"/>
+                    <arg evaluator="json" expression="json-eval($.proactiveCttInfo.validityFlag)"/>
+                </args>
+            </payloadFactory>
+        </case>
+        <default>
+            <sequence key="errorSequenceCTT"/>
+        </default>
+    </switch>
+    <property name="integrationNo" scope="transport" type="STRING" value="I1125"/>
+    <property name="type" scope="transport" type="STRING" value="Response body CTT"/>
+    <property name="requestId" scope="transport" type="STRING" expression="get-property('requestId')"/>
+    <call>
+        <endpoint key="LogAPI"/>
+    </call>
+    <property name="SC_ACCEPTED" value="false" scope="axis2"/>
+    <property name="HTTP_SC" expression="get-property('statusCode')" scope="axis2"/>
+    <payloadFactory media-type="json">
+        <format>$1</format>
+        <args>
+            <arg expression="get-property('tmResponse')"/>
+        </args>
+    </payloadFactory>
+    <respond/>
+</sequence>

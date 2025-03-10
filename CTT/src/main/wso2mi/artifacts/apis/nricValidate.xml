@@ -1,0 +1,22 @@
+<api xmlns="http://ws.apache.org/ns/synapse" name="VerifyIDAPI" context="/verify">
+    <resource methods="POST" uri-template="/nricValidate">
+        <inSequence>
+            <enrich>
+                <source type="body"/>
+                <target type="property" property="tmRequestPayload"/>
+            </enrich>
+            <property name="mobileNum" expression="json-eval($.mobileNum)" scope="default" type="STRING"/>
+            <property name="requestId" expression="json-eval($.requestHeader.requestId)" scope="default" type="STRING"/>
+            <property name="last6DigitNo" expression="json-eval($.last6DigitNo)" scope="default" type="STRING"/>
+            <property name="responseDt" expression="json-eval($.responseDt)" scope="default" type="STRING"/>
+            <property name="integrationNo" scope="transport" type="STRING" value="I1125"/>
+            <property name="type" scope="transport" type="STRING" value="Incoming Request NRIC"/>
+            <property name="requestId" scope="transport" type="STRING" expression="get-property('requestId')"/>
+            <call blocking="false">
+                <endpoint key="LogAPI"/>
+            </call>
+            <sequence key="processNRIC"/>
+            <respond/>
+        </inSequence>
+    </resource>
+</api>

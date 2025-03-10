@@ -1,0 +1,15 @@
+<sequence name="getTmConfigs" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <call>
+        <endpoint key="call-db-api-tm"/>
+    </call>
+    <property name="jsonPayload" expression="//*[local-name()='value']/text()" scope="default" type="STRING"/>
+    <payloadFactory media-type="json">
+        <format>{ "jsonPayload": $1 }</format>
+        <args>
+            <arg evaluator="xml" expression="get-property('jsonPayload')"/>
+        </args>
+    </payloadFactory>
+    <property name="Token" expression="json-eval($.jsonPayload.Token)" scope="default"/>
+    <property name="tmUrl" expression="json-eval($.jsonPayload.tmUrl)" scope="default"/>
+    <property name="tmCTTUrl" expression="json-eval($.jsonPayload.tmCTTUrl)" scope="default"/>
+</sequence>
